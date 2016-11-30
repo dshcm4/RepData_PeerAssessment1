@@ -1,11 +1,6 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "David Heeszel"
-date: "11/30/2016"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
+David Heeszel  
+11/30/2016  
 ###About
 This is the first peer-reviewed practical in the **Reproducible Research** course available on Coursera. The purpose of the practical is to answer a series of questions using data collected by an exercise tracker (e.g. Fitbit).
 
@@ -26,19 +21,26 @@ https://github.com/rdpeng/RepData_PeerAssessment1
 The raw dataset is stored as a .csv file.
 
 ## Loading and preprocessing the data
-```{r}
+
+```r
       data_raw<-read.csv("data/activity.csv")
 ```
 
 ## What is mean total number of steps taken per day?
 *Sum the number of steps by day
-```{r}
+
+```r
       steps_by_day<-aggregate(steps ~date, data_raw, sum)
       hist(steps_by_day$steps,main="Total Steps Each Day", col="red",xlab="Number of Steps",ylab="Number of Days")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
       steps_median<-median(steps_by_day$steps)
       steps_mean<-mean(steps_by_day$steps)
 ```
-The `mean` is `r steps_mean`, and the `median` is `r steps_median`.
+The `mean` is 1.0766189\times 10^{4}, and the `median` is 10765.
 
 
 ## What is the average daily activity pattern?
@@ -46,23 +48,31 @@ The `mean` is `r steps_mean`, and the `median` is `r steps_median`.
 * Plot the average number of steps per day by interval
 * Find the interval with the most average steps
 
-```{r}
+
+```r
       steps_by_interval<-aggregate(steps~interval,data_raw,mean)
       plot(steps_by_interval$interval,steps_by_interval$steps,type="l",xlab="Interval",ylab="Number of Steps",main="Mean Number of Steps per Day by Interval")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
       max_interval<- steps_by_interval[which.max(steps_by_interval$steps),1]
 ```
-The 5 minute interval, on average, across all days in the data set, containing the maximum number of steps is `r max_interval`.
+The 5 minute interval, on average, across all days in the data set, containing the maximum number of steps is 835.
 
 ## Imputing missing values
 Missing data may be imputed. Keep it simple though...
 Here we will impute missing values by inserting the average number of steps for each interval.  If interval 15 was missing on 10-01-2012, the average value for interval 15 replaces the NA.
 
-```{r}
+
+```r
       inc<-sum(!complete.cases(data_raw))
       imputed<-transform(data_raw,steps=ifelse(is.na(data_raw$steps),steps_by_interval$steps[match(data_raw$interval,steps_by_interval$interval)],data_raw$steps))
 ```
 Recount steps by day and create a histogram.
-```{r}
+
+```r
       imputed_steps<-aggregate(steps~date,imputed,sum)
       hist(imputed_steps$steps,main="Imputed Total Steps Each Day",col="red",xlab="Number of Steps",ylab="Number of Days")
 
@@ -71,18 +81,21 @@ Recount steps by day and create a histogram.
       legend("topleft",c("Imputed", "Non-Imputed"),col=c("red","blue"),lwd=10)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 Determine impact of imputation on mean and median of data.
 
-```{r}
+
+```r
       isteps_median<-median(imputed_steps$steps)
       isteps_mean<-mean(imputed_steps$steps)
       delta_median<-steps_median-isteps_median
       delta_mean<-steps_mean-isteps_mean
 ```
-* The imputed mean total daily steps is `r isteps_mean`
-* The imputed median total daily steps is `r isteps_median`
-* The impact of imputation on the mean total daily steps is `r delta_mean` steps
-* The impact of imputation on the median total daily steps is `r delta_median` steps
+* The imputed mean total daily steps is 1.0766189\times 10^{4}
+* The imputed median total daily steps is 1.0766189\times 10^{4}
+* The impact of imputation on the mean total daily steps is 0 steps
+* The impact of imputation on the median total daily steps is -1.1886792 steps
 * We can conclude that imputing missing data has a negligible impact on both the mean and the median using the method applied above
 
 
@@ -93,13 +106,23 @@ Create a new factor variable in the data with two levels - 'Weekday' and 'Weeken
 
 * Operate on the imputed data
 
-```{r}
+
+```r
       wdays<-c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
       imputed$dow=as.factor(ifelse(is.element(weekdays(as.Date(imputed$date)),wdays),"Weekday","Weekend"))
       imputed_steps_interval<-aggregate(steps~interval+dow,imputed,mean)
       library(lattice)
+```
+
+```
+## Warning: package 'lattice' was built under R version 3.3.1
+```
+
+```r
       xyplot(imputed_steps_interval$steps~imputed_steps_interval$interval|imputed_steps_interval$dow,main="Average Steps per Day by Interval",xlab="Interval",ylab="Steps",layout=c(1,2),type="l")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 ## From the plot we can see
 
